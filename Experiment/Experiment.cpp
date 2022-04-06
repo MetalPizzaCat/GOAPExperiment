@@ -1,6 +1,6 @@
-// Experiment.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
+/**
+* This is a single file c++ experiment focused on trying to make GOAP ai 
+*/
 #include <iostream>
 #include <vector>
 #include <map>
@@ -32,15 +32,16 @@ struct Requirement
 
 struct Task
 {
-	string Name;
+	const char* Name;
 	vector<Requirement> Requirments;
+	vector<Requirement> Returns;
 	//simulation of doing something by means of waiting
 	//time in game ticks
 	int ExecutionTime;
 
-	Task(string name, int execTime) :
+	Task(const char* name, int execTime) :
 		Name(name), ExecutionTime(execTime) {}
-	Task(string name, vector<Requirement>&& requirments, int execTime) :
+	Task(const char* name, vector<Requirement>&& requirments, int execTime) :
 		Name(name), ExecutionTime(execTime),Requirments(requirments) {}
 };
 //struct that contains all of the world's resources
@@ -51,12 +52,43 @@ struct World
 	int FoodCount;
 };
 
+class TaskManager
+{
+private:
+	vector<Task*> _tasks;
+public:
+	//Get task by name
+	//value is returned as const to avoid accidental modifications to value
+	Task const* operator[](const char* name)
+	{
+		for (Task*& task : _tasks)
+		{
+			if (task->Name == name)
+			{
+				return task;
+			}
+		}
+		return nullptr;
+	}
+
+	Task const* operator[](int id)
+	{
+		if(id >=0 && id < _tasks.size())
+		{
+			return _tasks[id];
+		}
+		return nullptr;
+	}
+};
+
 class Human
 {
 private:
 	//using vector as stack because need direct access to tasks for display
-	vector<Task*> _tasks;
+	vector<Task const*> _tasks;
 	World& _world;
+	TaskManager& _taskManager;
+	int _currentTaskExecutionCounter = 0;
 public:
 	const char* Name;
 	void AddTask(Task const*  task)
@@ -67,16 +99,16 @@ public:
 			{
 				if (_world.LogCount >= req.Log)
 				{
-					_tasks.push_back(new Task("Get logs", 10));
+					_tasks.push_back(_taskManager["get_logs"]);
 				}
 				else
 				{
-					_tasks.push_back(new Task("Get axe", 20));
-					_tasks.push_back(new Task("Cut trees", 20));
+					_tasks.push_back(_taskManager["get_axe"]);
+					_tasks.push_back(_taskManager["cut_trees"]);
 				}
 			}
 		}
-		_tasks.push_back(new Task(task->Name, task->ExecutionTime));
+		_tasks.push_back(task);
 	}
 
 	void DisplayStatus()
@@ -88,7 +120,7 @@ public:
 		}
 		else
 		{
-			for (Task* task : _tasks)
+			for (Task const* task : _tasks)
 			{
 				PRINT(termcolor::yellow, task->Name << "->");
 			}
@@ -100,25 +132,25 @@ public:
 	{
 		if (!_tasks.empty())
 		{
-			Task* task = *_tasks.begin();
-			task->ExecutionTime -= ticks;
-			if (task->ExecutionTime <= 0)
+			_currentTaskExecutionCounter += ticks;
+			if (_currentTaskExecutionCounter  >= (*_tasks.begin())->ExecutionTime)
 			{
-				delete task;
+				_currentTaskExecutionCounter = 0;
 				_tasks.erase(_tasks.begin());
 			}
 		}
 	}
-	Human(World& world,const char *name) :_world(world),Name(name) {}
+	Human(World& world,const char *name, TaskManager& taskManager) :_world(world),Name(name),_taskManager(taskManager) {}
 };
 
 int main()
 {
 	World world = { 20,20,20 };
+	TaskManager manager;
 	vector<Human> people = {
-		Human(world,"Ivan"),
-		Human(world,"Vasya"),
-		Human(world,"Elena")
+		Human(world,"Ivan",manager),
+		Human(world,"Vasya",manager),
+		Human(world,"Elena",manager)
 	};
 	//array of all possible tasks
 	vector<Task*> tasks = {
@@ -132,6 +164,13 @@ int main()
 		new Task
 		{
 			"Make a lot of planks",vector<Requirement>
+			{
+				{100,20,30}
+			},20
+		},
+		new Task
+		{
+			"Build house",vector<Requirement>
 			{
 				{100,20,30}
 			},20
