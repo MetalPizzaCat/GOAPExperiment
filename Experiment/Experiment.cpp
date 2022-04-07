@@ -8,6 +8,7 @@
 #include <chrono>
 #include <stack>
 #include <thread>
+#include<memory>
 
 #define PRINT(color,text) std::cout << color << text;
 #define PRINT_LINE(color,text) std::cout << color << text << termcolor::reset << std::endl
@@ -15,25 +16,25 @@
 #define SCREEN_CLEAR() cout << "\033[2J\033[1;1H"
 using namespace std;
 
-enum Tool
+enum ETools
 {
-	None,
-	Axe,
-	SmithingTable,
-	Hammer
+	ET_None,
+	ET_Axe,
+	ET_SmithingTable,
+	ET_Hammer
 };
 struct Requirement
 {
 	int Log;
 	int Iron;
 	int Food;
-	Tool NeededTool;
+	ETools NeededTool;
 };
 
 struct Task
 {
 	const char* Name;
-	vector<Requirement> Requirments;
+	Requirement Requirments;
 	vector<Requirement> Returns;
 	//simulation of doing something by means of waiting
 	//time in game ticks
@@ -41,8 +42,11 @@ struct Task
 
 	Task(const char* name, int execTime) :
 		Name(name), ExecutionTime(execTime) {}
-	Task(const char* name, vector<Requirement>&& requirments, int execTime) :
+	Task(const char* name, Requirement && requirments, int execTime) :
 		Name(name), ExecutionTime(execTime),Requirments(requirments) {}
+
+	Task(const char* name, Requirement requirments, int execTime) :
+		Name(name), ExecutionTime(execTime), Requirments(requirments) {}
 };
 //struct that contains all of the world's resources
 struct World
@@ -57,6 +61,16 @@ class TaskManager
 private:
 	vector<Task*> _tasks;
 public:
+	bool Add(const char* name, int executionTime,Requirement requirement)
+	{
+		vector<Task*>::iterator it = std::find_if(_tasks.begin(), _tasks.end(), [name](Task* task) {return task->Name == name; });
+		if (it == _tasks.end())
+		{
+			_tasks.push_back(new Task(name, requirement, executionTime));
+			return true;
+		}
+		return false;
+	}
 	//Get task by name
 	//value is returned as const to avoid accidental modifications to value
 	Task const* operator[](const char* name)
@@ -71,7 +85,20 @@ public:
 		return nullptr;
 	}
 
-	Task const* operator[](int id)
+	//Get task by name
+	//value is returned as const to avoid accidental modifications to value
+	Task const* Get(const char* name)
+	{
+		for (Task*& task : _tasks)
+		{
+			if (task->Name == name)
+			{
+				return task;
+			}
+		}
+		return nullptr;
+	}
+	Task const* At(int id)
 	{
 		if(id >=0 && id < _tasks.size())
 		{
@@ -87,28 +114,30 @@ private:
 	//using vector as stack because need direct access to tasks for display
 	vector<Task const*> _tasks;
 	World& _world;
-	TaskManager& _taskManager;
+	TaskManager* _taskManager;
 	int _currentTaskExecutionCounter = 0;
+
+	inline void _safeAdd(Task const* task) {
+		if (task != nullptr) { _tasks.push_back(task); }
+	}
 public:
 	const char* Name;
-	void AddTask(Task const*  task)
+	void AddTask(Task const* task)
 	{
-		for (Requirement req : task->Requirments)
+		if (task->Requirments.Log > 0)
 		{
-			if (req.Log > 0)
+			if (_world.LogCount >= task->Requirments.Log)
 			{
-				if (_world.LogCount >= req.Log)
-				{
-					_tasks.push_back(_taskManager["get_logs"]);
-				}
-				else
-				{
-					_tasks.push_back(_taskManager["get_axe"]);
-					_tasks.push_back(_taskManager["cut_trees"]);
-				}
+				_safeAdd(_taskManager->Get("get_logs"));
 			}
+			else
+			{
+				_safeAdd(_taskManager->Get("get_axe"));
+				_safeAdd(_taskManager->Get("cut_trees"));
+			}
+
 		}
-		_tasks.push_back(task);
+		_safeAdd(task);
 	}
 
 	void DisplayStatus()
@@ -140,44 +169,24 @@ public:
 			}
 		}
 	}
-	Human(World& world,const char *name, TaskManager& taskManager) :_world(world),Name(name),_taskManager(taskManager) {}
+	Human(World& world,const char *name, TaskManager* taskManager) :_world(world),Name(name),_taskManager(taskManager) {}
 };
 
 int main()
 {
 	World world = { 20,20,20 };
-	TaskManager manager;
+	unique_ptr<TaskManager> manager = make_unique<TaskManager>();
 	vector<Human> people = {
-		Human(world,"Ivan",manager),
-		Human(world,"Vasya",manager),
-		Human(world,"Elena",manager)
+		Human(world,"Ivan",manager.get()),
+		Human(world,"Vasya",manager.get()),
+		Human(world,"Elena",manager.get())
 	};
-	//array of all possible tasks
-	vector<Task*> tasks = {
-		new Task
-		{
-			"Make plank",vector<Requirement>
-			{
-				{10,20,30}
-			},20
-		},
-		new Task
-		{
-			"Make a lot of planks",vector<Requirement>
-			{
-				{100,20,30}
-			},20
-		},
-		new Task
-		{
-			"Build house",vector<Requirement>
-			{
-				{100,20,30}
-			},20
-		}
-	};
-	people[0].AddTask(tasks[0]);
-	people[1].AddTask(tasks[1]);
+	manager->Add("make_plank", 20, { 20,0,0,ETools::ET_Axe });
+	manager->Add("cut_trees", 20, { 0,0,0,ETools::ET_Axe });
+	manager->Add("get_logs", 20, { 0,0,0,ETools::ET_Axe });
+	
+	people[0].AddTask(manager->operator[]("make_plank"));
+	people[1].AddTask(manager->operator[]("make_plank"));
 	while (true)
 	{
 		SCREEN_CLEAR();
