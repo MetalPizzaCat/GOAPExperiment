@@ -2,7 +2,7 @@
 
 bool TaskManager::Add(Task* task)
 {
-	std::vector<Task*>::iterator it = std::ranges::find_if(_tasks.begin(), _tasks.end(), [task](Task const* cur_task) {return cur_task->Name == task->Name; });
+	std::vector<Task*>::iterator it = std::ranges::find_if(_tasks.begin(), _tasks.end(), [task](Task const* cur_task) {return cur_task->GetName() == task->GetName(); });
 	if (it == _tasks.end())
 	{
 		_tasks.push_back(task);
@@ -15,7 +15,7 @@ Task const* TaskManager::operator[](std::string const& name)
 {
 	for (Task*& task : _tasks)
 	{
-		if (task->Name == name)
+		if (task->GetName() == name)
 		{
 			return task;
 		}
@@ -27,7 +27,7 @@ Task const* TaskManager::Get(std::string const& name)
 {
 	for (Task*& task : _tasks)
 	{
-		if (task->Name == name)
+		if (task->GetName() == name)
 		{
 			return task;
 		}

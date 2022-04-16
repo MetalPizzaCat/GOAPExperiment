@@ -1,5 +1,4 @@
 make_plank:
-	cost =  10
 	req:
 		#needed plank count
 		logs = 5
@@ -7,21 +6,13 @@ make_plank:
 		planks = 1
 #tasks that begin with "get_" have additional "fallbacks" that are assigned when more of this material needs to be made 
 get_logs:
-	cost =  5
-	take:
-		logs = 5
 	return: 
-		logs = 5
+		#return of "n" means as many as needed
+		#logs = 5
 make_log:
-	cost =  5
 	req:
 		axe = 1
 		#tree = 1
 	return:
 		logs = 5
-get_axe:
-	cost = 1
-	take:
-		axe = 1
-	return: 
-		axe = 1
+	

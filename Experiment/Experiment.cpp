@@ -11,6 +11,9 @@
 #include <memory>
 #include "TaskManager.h"
 #include "Human.h"
+#include "Tasks.h"
+#include "Tree.h"
+#include "Barn.h"
 
 using namespace std;
 
@@ -19,20 +22,21 @@ int main()
 	World* world = new World();
 
 	unique_ptr<TaskManager> manager = make_unique<TaskManager>();
-	vector<Human> people = {
+	vector<Human> people = 
+	{
 		Human(world,"Ivan",manager.get()),
 		Human(world,"Vasya",manager.get()),
 		Human(world,"Elena",manager.get())
 	};
 	manager->Add(new Task("make_plank", 20));
-	manager->At(0)->Requirments["log"] = 5;
-	manager->At(0)->Returns["plank"] = 1;
+	manager->At(0)->AddRequirement("log", 5);
+	manager->At(0)->AddReturn("plank", 1);
 
 	manager->Add(new Task("get_log", 1));
 	manager->Add(new Task("move_to", 10));
 
-	manager->Add(new Task("make_log", 20));
-	manager->At(3)->Returns["log"] = 5;
+	manager->Add(new TaskCutTree("make_log", 20));
+	manager->At(3)->AddReturn("log", 5);
 
 	people[0].AddTask(manager->Get("make_plank"));
 

@@ -1,14 +1,32 @@
 #pragma once
 #include <map>
 #include <string>
+#include <vector>
+#include "Object.h"
+#include <memory>
+
 /**World contains all of the resources in the world*/
 class World
 {
 private:
-	std::map<std::string , int32_t> _resources;
+	std::vector<std::unique_ptr<Object>> _objects;
 public:
-	/*Get amount of resource with this name
-	* Ideally this would interate over all objects that store this item*/
+	/**Gets total amount of this resource in the world, including every barn placed*/
 	int32_t Get(std::string const&  name);
-	void Add(std::string const&  name, int32_t amount);
-};
+
+	template<class T = Object>
+	std::vector<T*> GetAllObjectsOfType()
+	{
+		std::vector<T*> res;
+		for (std::unique_ptr<Object>const & obj : _objects)
+		{
+			if (obj->Type() == T::ClassType)
+			{
+				res.push_back(static_cast<T*>(obj.get()));
+			}
+		}
+		return res;
+	}
+
+	std::vector<Object*> GetAllObjectsOfType(EObjectType type);
+};	

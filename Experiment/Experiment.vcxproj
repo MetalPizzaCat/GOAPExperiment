@@ -147,19 +147,27 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Barn.cpp" />
     <ClCompile Include="Experiment.cpp" />
     <ClCompile Include="Human.cpp" />
     <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="Object.cpp" />
     <ClCompile Include="Task.cpp" />
     <ClCompile Include="TaskManager.cpp" />
+    <ClCompile Include="Tasks.cpp" />
+    <ClCompile Include="Tree.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Barn.h" />
     <ClInclude Include="Human.h" />
     <ClInclude Include="Logger.h" />
+    <ClInclude Include="Object.h" />
     <ClInclude Include="Task.h" />
     <ClInclude Include="TaskManager.h" />
+    <ClInclude Include="Tasks.h" />
     <ClInclude Include="Tools.h" />
+    <ClInclude Include="Tree.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
