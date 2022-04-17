@@ -7,7 +7,7 @@ class Human : public Object
 {
 private:
 	//using std::vector as stack because need direct access to tasks for display
-	std::vector<Task const*> _tasks;
+	std::vector<Task*> _tasks;
 	World* _world = nullptr;
 	TaskManager* _taskManager = nullptr;
 	int _currentTaskExecutionCounter = 0;
@@ -17,10 +17,7 @@ private:
 	//current destination
 	Object* _currentTarget = nullptr;
 
-	inline void _safeAdd(Task const* task)
-	{
-		if (task != nullptr) { _tasks.push_back(task); }
-	}
+	void _safeAdd(Task const* task, Resource* specialTaskData = nullptr);
 
 	void _prepareNewTask();
 public:
@@ -31,4 +28,6 @@ public:
 
 	void Update(int ticks);
 	Human(World* world, std::string name, TaskManager* taskManager) :_world(world), Name(name), _taskManager(taskManager) {}
+
+	virtual ~Human();
 };

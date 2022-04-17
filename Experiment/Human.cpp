@@ -14,6 +14,7 @@ void Human::Update(int ticks)
 
 			_tasks.erase(_tasks.begin());
 			t->Perform(_currentTarget, this);
+			delete t;
 		}
 	}
 }
@@ -39,7 +40,7 @@ void Human::AddTask(Task const* task)
 {
 	if (!task)
 		return;
-	for (Resource const& res : task->GetRequirements())
+	for (Resource const& res : (*task->GetRequirements()))
 	{
 		//make system of fallbacks when if there are not enought resources ai would execute set of tasks
 		/* example
@@ -118,4 +119,21 @@ void Human::_prepareNewTask()
 			break;
 		}
 	}
+}
+
+void Human::_safeAdd(Task const* task, Resource* specialTaskData)
+{
+	if (task != nullptr)
+	{
+		_tasks.push_back(new Task(task));
+		if(specialTaskData)
+			(*_tasks.rbegin())->CurrentTaskData = *specialTaskData;
+	}
+}
+
+Human::~Human()
+{
+	for (Task* t : _tasks)
+		delete t;
+	_tasks.clear();
 }

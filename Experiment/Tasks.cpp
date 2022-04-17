@@ -20,7 +20,7 @@ bool TaskTakeResources::Perform(Object* _currentTarget, Human* human) const
 		//on task completion we give all returns back to world and take all needs
 		//ideally you'd have mini inventory system to avoid making ai constantly walk back and forth
 		//but for simplicity let's say ai always gives everything they have to the "super-barn" as soon as they make it
-		for (auto const& [name, value] : _requirements)
+		for (auto const& [name, value] : *_requirements)
 		{
 			if (barn->GetResource(name) >= value)
 			{

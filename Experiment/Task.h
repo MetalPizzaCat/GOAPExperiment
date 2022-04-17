@@ -27,9 +27,9 @@ class Task
 protected:
 	std::string _name;
 	/** What human needs to have BEFORE starting the task*/
-	std::vector<Resource> _requirements;
+	std::vector<Resource>* _requirements;
 	/**What human will get as the result of the executing the task*/
-	std::vector<Resource> _returns;
+	std::vector<Resource>* _returns;
 
 	
 
@@ -47,8 +47,8 @@ public:
 	/**What kind of object is needed as target. Or EOT_Object if no object is nessesary*/
 	const EObjectType NeededObjectType = EOT_Object;
 	std::string const& GetName() const { return _name; }
-	std::vector<Resource> const & GetRequirements()const { return _requirements; }
-	std::vector<Resource> const & GetReturns()const { return _returns; }
+	std::vector<Resource>  const *  GetRequirements()const { return _requirements; }
+	std::vector<Resource>  const *  GetReturns()const { return _returns; }
 
 	/**Adds new requirment or adds more amount to the existing one*/
 	void AddRequirement(std::string name, int32_t amount);
@@ -59,8 +59,13 @@ public:
 
 	int32_t GetExecutionTime()const { return _executionTime; }
 
-	Task(std::string name, int executionTime, EObjectType neededObjectType):
-		_name(name), _executionTime(executionTime),NeededObjectType(neededObjectType){}
+	Task(std::string name, int executionTime, EObjectType neededObjectType);
+
+	/** Copy constructor that will copy references to provided object for everything expect CurrentTaskData value*/
+	Task(Task const& task);
+
+	/** Copy constructor that will copy references to provided object for everything expect CurrentTaskData value*/
+	explicit Task(Task const* task);
 
 	/// <summary>
 	/// Executed when task needs to be performed
