@@ -6,8 +6,6 @@
 class Human : public Object
 {
 private:
-	/**Resources that human will take for using their tasks which will be returned if for whatever reason task has been cancelled*/
-	Requirement _promisedResources;
 	//using std::vector as stack because need direct access to tasks for display
 	std::vector<Task const*> _tasks;
 	World* _world = nullptr;
@@ -23,6 +21,8 @@ private:
 	{
 		if (task != nullptr) { _tasks.push_back(task); }
 	}
+
+	void _prepareNewTask();
 public:
 	std::string Name;
 	void AddTask(Task const* task);

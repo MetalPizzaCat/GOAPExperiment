@@ -2,14 +2,8 @@
 #include <map>
 #include "Tools.h"
 #include <string>
-struct Requirement
-{
-	int Log;
-	int Iron;
-	int Food;
-	ETools NeededTool;
-};
-class Object;
+#include <vector>
+#include "Object.h"
 class Human;
 
 enum ETaskType
@@ -21,39 +15,52 @@ enum ETaskType
 	/**Called if this event has special action to execute*/
 	ETT_SpecialAction
 };
-class Task//yes i know this is used as a class, but i use keyword struct for classes with data-only usage
+
+struct Resource
+{
+	std::string Name;
+	int32_t Amount;
+};
+
+class Task
 {
 protected:
 	std::string _name;
-	std::map<std::string, int32_t> _requirements;
-	std::map<std::string, int32_t> _returns;
-	std::map<std::string, int32_t> _resourcesToTake;
+	/** What human needs to have BEFORE starting the task*/
+	std::vector<Resource> _requirements;
+	/**What human will get as the result of the executing the task*/
+	std::vector<Resource> _returns;
+
+	
 
 	ETaskType _type = ETT_Generic;
 	//simulation of doing something by means of waiting
 	//time in game ticks
 	int _executionTime;
 public:
-	std::string const& GetName() const { return _name; }
-	std::map < std::string, int32_t> const & GetRequirements()const { return _requirements; }
-	std::map < std::string, int32_t> const & GetReturns()const { return _returns; }
-	std::map < std::string, int32_t> const & GetResourcesToTake()const { return _resourcesToTake; }
 
-	void AddRequirement(std::string name, int32_t amount) { _requirements[name] += amount; }
-	void AddReturn(std::string name, int32_t amount) { _returns[name] += amount; }
-	void AddResourcesToTake(std::string name, int32_t amount) { _resourcesToTake[name] += amount; }
+	//what?
+	//the idea is to write here data that will need to be executed with this specific version of the task
+	//such as 
+	Resource CurrentTaskData;
+
+	/**What kind of object is needed as target. Or EOT_Object if no object is nessesary*/
+	const EObjectType NeededObjectType = EOT_Object;
+	std::string const& GetName() const { return _name; }
+	std::vector<Resource> const & GetRequirements()const { return _requirements; }
+	std::vector<Resource> const & GetReturns()const { return _returns; }
+
+	/**Adds new requirment or adds more amount to the existing one*/
+	void AddRequirement(std::string name, int32_t amount);
+
+	void AddReturn(std::string name, int32_t amount);
 
 	ETaskType GetType()const { return _type; }
 
 	int32_t GetExecutionTime()const { return _executionTime; }
-	Task(std::string name, int executionTime, std::map<std::string, int32_t>& requirments, std::map<std::string, int32_t>& returns) :
-		_name(name),
-		_requirements(std::move(requirments)),//because we don't want value duplication
-		_returns(std::move(returns)),//because we don't want value duplication
-		_executionTime(executionTime) {}
 
-	Task(std::string name, int executionTime):
-		_name(name), _executionTime(executionTime) {}
+	Task(std::string name, int executionTime, EObjectType neededObjectType):
+		_name(name), _executionTime(executionTime),NeededObjectType(neededObjectType){}
 
 	/// <summary>
 	/// Executed when task needs to be performed
@@ -61,5 +68,5 @@ public:
 	/// </summary>
 	/// <param name="target">Object which is the current target of the task(like a tree, creature etc.)</param>
 	/// <param name="human">Person that is executing the task</param>
-	virtual void Perform(Object* target, Human* human)const {}
+	virtual bool Perform(Object* target, Human* human)const { return false; }
 };

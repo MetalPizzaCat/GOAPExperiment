@@ -17,4 +17,13 @@ public:
 	Task const* Get(std::string const&  name);
 
 	Task * At(int id);
+
+	~TaskManager()
+	{
+		for (Task* t : _tasks)
+		{
+			delete t;
+		}
+		_tasks.clear();
+	}
 };

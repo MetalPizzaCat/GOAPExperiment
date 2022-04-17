@@ -2,15 +2,18 @@
 #include "Tree.h"
 #include "Human.h"
 #include "Barn.h"
-void TaskCutTree::Perform(Object* _currentTarget, Human* human) const
+bool TaskCutTree::Perform(Object* _currentTarget, Human* human) const
 {
 	if (Tree* tree = dynamic_cast<Tree*>(_currentTarget); tree)
 	{
-		tree->TakeLogs(tree->GetLogCount() >= 5 ? 5 : tree->GetLogCount());
+		if (tree->GetLogCount() < 5)
+			return false;
+		tree->TakeLogs(5);
+		return true;
 	}
 }
 
-void TaskTakeResources::Perform(Object* _currentTarget, Human* human) const
+bool TaskTakeResources::Perform(Object* _currentTarget, Human* human) const
 {
 	if (Barn* barn = dynamic_cast<Barn*>(_currentTarget); barn)//we can only take items out of target
 	{
@@ -19,9 +22,10 @@ void TaskTakeResources::Perform(Object* _currentTarget, Human* human) const
 		//but for simplicity let's say ai always gives everything they have to the "super-barn" as soon as they make it
 		for (auto const& [name, value] : _requirements)
 		{
-			//take required task items from whatever was the target
-			barn->RemoveResource(name, value);
-			//_world->Add(name, -value);
+			if (barn->GetResource(name) >= value)
+			{
+				barn->RemoveResource(name, value);
+			}
 		}
 	}
 	else
@@ -30,4 +34,5 @@ void TaskTakeResources::Perform(Object* _currentTarget, Human* human) const
 		//so we need to add this task back but with new goal
 		//however technically this should not happen as _currentTarget being correct *should* be insured during task assigment
 	}
+	return true;
 }
