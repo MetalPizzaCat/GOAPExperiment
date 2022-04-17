@@ -5,7 +5,7 @@
 class TaskCutTree : public Task
 {
 public:
-	bool Perform(Object* obj, Human* human)const override;
+	bool Perform(Object* obj, Human* human, TaskData& data)const override;
 
 	TaskCutTree(std::string name, int executionTime, EObjectType neededObjectType) :
 		Task(name, executionTime, neededObjectType) {}
@@ -17,7 +17,7 @@ public:
 class TaskTakeResources : public Task
 {
 public:
-	bool Perform(Object* obj, Human* human)const override;
+	bool Perform(Object* obj, Human* human, TaskData& data)const override;
 
 	TaskTakeResources(std::string name, int executionTime, EObjectType neededObjectType) :
 		Task(name, executionTime, neededObjectType) {}
@@ -29,7 +29,7 @@ public:
 class TaskGiveResources : public Task
 {
 public:
-	bool Perform(Object* obj, Human* human) const override;
+	bool Perform(Object* obj, Human* human, TaskData& data) const override;
 
 	TaskGiveResources(std::string name, int executionTime, EObjectType neededObjectType) :
 		Task(name, executionTime, neededObjectType) {}

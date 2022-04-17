@@ -2,7 +2,7 @@
 #include "Tree.h"
 #include "Human.h"
 #include "Barn.h"
-bool TaskCutTree::Perform(Object* _currentTarget, Human* human) const
+bool TaskCutTree::Perform(Object* _currentTarget, Human* human, TaskData& data) const
 {
 	if (Tree* tree = dynamic_cast<Tree*>(_currentTarget); tree)
 	{
@@ -11,21 +11,31 @@ bool TaskCutTree::Perform(Object* _currentTarget, Human* human) const
 		tree->TakeLogs(5);
 		return true;
 	}
+	return false;
 }
 
-bool TaskTakeResources::Perform(Object* _currentTarget, Human* human) const
+bool TaskTakeResources::Perform(Object* _currentTarget, Human* human, TaskData& data) const
 {
-	if (Barn* barn = dynamic_cast<Barn*>(_currentTarget); barn)//we can only take items out of target
+	if (Barn* barn = dynamic_cast<Barn*>(_currentTarget); barn && data.TaskResourceData)//we can only take items out of target
 	{
-		//on task completion we give all returns back to world and take all needs
-		//ideally you'd have mini inventory system to avoid making ai constantly walk back and forth
-		//but for simplicity let's say ai always gives everything they have to the "super-barn" as soon as they make it
-		for (auto const& [name, value] : *_requirements)
+		//try to take needed resource from the barn and if unable give new task of getting it from somewhere else
+		//right now system doesn't fail tasks, but if it would it should notify of task failure rather then give new one
+
+		std::string& name = data.TaskResourceData->Name;
+		int32_t& value = data.TaskResourceData->Amount;
+
+		if (barn->GetResource(name) >= value)
 		{
-			if (barn->GetResource(name) >= value)
-			{
-				barn->RemoveResource(name, value);
-			}
+			barn->RemoveResource(name, value);
+			human->AddResource(name, value);
+		}
+		else
+		{
+			const int32_t amount = barn->GetResource(name) - value;
+			human->AddResource(name, amount);
+			barn->RemoveResource(name, amount);
+			//since there are not enough resources for us we need to get some
+			human->AddTask("get_" + name, new Resource{ name, amount });
 		}
 	}
 	else
