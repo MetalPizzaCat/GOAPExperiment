@@ -19,14 +19,19 @@ using namespace std;
 
 int main()
 {
-	World* world = new World();
+	unique_ptr<World> world = std::make_unique<World>();
+	world->SpawnObject<Tree>();
+	world->SpawnObject<Tree>();
+	world->SpawnObject<Tree>();
+	Barn* b = world->SpawnObject<Barn>();
+	b->AddResource("log", 60);
 
 	unique_ptr<TaskManager> manager = make_unique<TaskManager>();
 	vector<Human> people =
 	{
-		Human(world,"Ivan",manager.get()),
-		Human(world,"Vasya",manager.get()),
-		Human(world,"Elena",manager.get())
+		Human(world.get(),"Ivan",manager.get()),
+		Human(world.get(),"Vasya",manager.get()),
+		Human(world.get(),"Elena",manager.get())
 	};
 	manager->Add(new Task("make_plank", 20, EOT_Object));
 	manager->At(0)->AddRequirement("log", 5);

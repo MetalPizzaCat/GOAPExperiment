@@ -28,5 +28,12 @@ public:
 		return res;
 	}
 
+	template<class Class, class ...Args>
+	inline Class* SpawnObject(Args ... args)
+	{
+		_objects.push_back(std::make_unique<Class>(args...));
+		return static_cast<Class*>((*_objects.rbegin()).get());
+	}
+
 	std::vector<Object*> GetAllObjectsOfType(EObjectType type);
 };	
